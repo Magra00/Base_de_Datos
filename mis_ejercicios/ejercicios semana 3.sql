@@ -136,3 +136,80 @@ WHERE codigo_producto=(SELECT codigo_producto
 FROM fabricante
 WHERE nombre_fabricante='lenovo'));
 
+#cremos tabla que lmacenara los datos trigger no tiene relacion con ninguna otra
+CREATE TABLE registro(
+id_registro INT AUTO_INCREMENT PRIMARY KEY,
+accion VARCHAR(100),
+fecha TIMESTAMP
+);
+
+#creamos trigger
+DELIMITER //
+	CREATE TRIGGER trigger_registro BEFORE INSERT ON producto
+    FOR EACH ROW BEGIN
+    INSERT INTO registro(accion) VALUES("se agrego un producto");
+    END//
+DELIMITER ;
+
+DROP TRIGGER trigger_registro;
+
+SELECT *
+FROM registro;
+
+INSERT INTO producto VALUES(17, 'Mack book', 48, 2);
+
+SELECT *
+FROM registro;
+
+SELECT *
+FROM producto;
+#SE REA TRIGGER PARA MODIFICAR PRODUTO
+
+DELIMITER //
+	CREATE TRIGGER trigger_modificacion AFTER UPDATE ON producto
+    FOR EACH ROW BEGIN
+    INSERT INTO registro(accion) VALUES("se modifico un producto");
+    END//
+DELIMITER ;
+
+UPDATE producto
+SET nombre_producto = 'ASUS'
+WHERE codigo_producto=17;
+
+
+#modificar precio trigger
+DELIMITER //
+	CREATE TRIGGER modificar_precio BEFORE INSERT ON producto
+    FOR EACH ROW BEGIN
+    IF NEW.precio > 200 THEN
+    SET NEW.precio = NEW.precio - 10; 
+    ELSEIF NEW.precio < 200 THEN
+    SET NEW.precio = NEW.precio + 10;
+    END IF;
+    END//
+DELIMITER ;
+
+INSERT INTO producto VALUES(40, 'Mack book', 488, 2);
+INSERT INTO producto VALUES(50, 'Mack book', 188, 2);
+
+SELECT *
+FROM producto;
+
+DROP TRIGGER modificar_precio;
+
+DELIMITER //
+	CREATE TRIGGER modificar_precio BEFORE INSERT ON producto
+    FOR EACH ROW BEGIN
+    IF NEW.precio > 200 THEN
+    SET NEW.precio = NEW.precio - 10; 
+    ELSEIF NEW.precio < 200 THEN
+    SET NEW.precio = NEW.precio + 10;
+    END IF;
+    INSERT INTO registro(accion) VALUES (concat('se agrego producto con precio de :', NEW.precio));
+    END//
+DELIMITER ;
+
+INSERT INTO producto VALUES(60, 'Mack book', 188, 2);
+#muestra las modificaciones a los productos
+SELECT *
+FROM registro
